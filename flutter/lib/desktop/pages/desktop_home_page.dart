@@ -59,7 +59,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // Modified: Removed Row and RightPane logic to only show LeftPane
+    // Modified: Only show LeftPane (Sidebar)
     return _buildBlock(
         child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +96,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
             Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
         builder: (_, data) {
           if (data.hasData) {
-            // Modified: Always trigger window resize check on home page
+            // Check for home page resize
             if (isInHomePage()) {
               Future.delayed(Duration(milliseconds: 300), () {
                 _updateWindowSize();
@@ -108,10 +108,30 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           }
         },
       ),
+      // NEW: Small version label instead of the update prompt
+      Align(
+        alignment: Alignment.center,
+        child: FutureBuilder<String>(
+          // Fetch version safely (async or sync depending on bind implementation)
+          future: Future.value(bind.mainGetVersion()), 
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Text(
+                "v${snapshot.data}",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+                  fontSize: 12,
+                ),
+              ).marginSymmetric(vertical: 8);
+            }
+            return SizedBox();
+          },
+        ),
+      ),
       buildPluginEntry(),
     ];
-
-    // Modified: Always add OnlineStatusWidget regardless of isIncomingOnly
+    
+    // Always add Online Status at the bottom for this layout
     children.addAll([
       Divider(),
       OnlineStatusWidget(
@@ -129,8 +149,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return ChangeNotifierProvider.value(
       value: gFFI.serverModel,
       child: Container(
-        // Modified: Fixed width to 280.0 to match the sidebar look
-        width: 280.0,
+        width: 280.0, // Fixed width for sidebar mode
         color: Theme.of(context).colorScheme.background,
         child: Stack(
           children: [
@@ -429,36 +448,15 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildHelpCards(String updateUrl) {
-    if (!bind.isCustomClient() &&
-        updateUrl.isNotEmpty &&
-        !isCardClosed &&
-        bind.mainUriPrefixSync().contains('rustdesk')) {
-      final isToUpdate = (isWindows || isMacOS) && bind.mainIsInstalled();
-      String btnText = isToUpdate ? 'Update' : 'Download';
-      GestureTapCallback onPressed = () async {
-        final Uri url = Uri.parse('https://rustdesk.com/download');
-        await launchUrl(url);
-      };
-      if (isToUpdate) {
-        onPressed = () {
-          handleUpdate(updateUrl);
-        };
-      }
-      return buildInstallCard(
-          "Status",
-          "${translate("new-version-of-{${bind.mainGetAppNameSync()}}-tip")} (${bind.mainGetNewVersion()}).",
-          btnText,
-          onPressed,
-          closeButton: true,
-          help: isToUpdate ? 'Changelog' : null,
-          link: isToUpdate
-              ? 'https://github.com/rustdesk/rustdesk/releases/tag/${bind.mainGetNewVersion()}'
-              : null);
-    }
+    // SUPPRESSED: The block that previously showed the Update card has been removed.
+    
+    // Check for System Errors
     if (systemError.isNotEmpty) {
       return buildInstallCard("", systemError, "", () {});
     }
 
+/*
+    // Windows Installation/Upgrade Prompts
     if (isWindows && !bind.isDisableInstallation()) {
       if (!bind.mainIsInstalled()) {
         return buildInstallCard(
@@ -475,7 +473,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           bind.mainUpdateMe();
         });
       }
-    } else if (isMacOS) {
+    } 
+    // MacOS Permission Cards
+    else if (isMacOS) {
       final isOutgoingOnly = bind.isOutgoingOnly();
       if (!(isOutgoingOnly || bind.mainIsCanScreenRecording(prompt: false))) {
         return buildInstallCard("Permissions", "config_screen", "Configure",
@@ -503,22 +503,14 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           bind.mainIsInstalledDaemon(prompt: true);
         });
       }
-      //// Disable microphone configuration for macOS. We will request the permission when needed.
-      // else if ((await osxCanRecordAudio() !=
-      //     PermissionAuthorizeType.authorized)) {
-      //   return buildInstallCard("Permissions", "config_microphone", "Configure",
-      //       () async {
-      //     osxRequestAudio();
-      //     watchIsCanRecordAudio = true;
-      //   });
-      // }
-    } else if (isLinux) {
+    } 
+    // Linux Permission Cards
+    else if (isLinux) {
       if (bind.isOutgoingOnly()) {
         return Container();
       }
       final LinuxCards = <Widget>[];
       if (bind.isSelinuxEnforcing()) {
-        // Check is SELinux enforcing, but show user a tip of is SELinux enabled for simple.
         final keyShowSelinuxHelpTip = "show-selinux-help-tip";
         if (bind.mainGetLocalOption(key: keyShowSelinuxHelpTip) != 'N') {
           LinuxCards.add(buildInstallCard(
@@ -553,7 +545,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           children: LinuxCards,
         );
       }
-    }
+    } */
     if (bind.isIncomingOnly()) {
       return Align(
         alignment: Alignment.centerRight,
@@ -601,8 +593,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return Stack(
       children: [
         Container(
-          // Modified: Always apply top margin as if incoming only
-          margin: EdgeInsets.fromLTRB(0, marginTop, 0, marginTop),
+          margin: EdgeInsets.fromLTRB(
+              0, marginTop, 0, marginTop), // Applied consistent margin
           child: Container(
               decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -851,7 +843,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     });
     _uniLinksSubscription = listenUniLinks();
 
-    // Modified: Always update window size for the sidebar view
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateWindowSize();
     });

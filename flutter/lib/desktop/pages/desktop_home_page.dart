@@ -59,7 +59,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // Modified: Only show LeftPane (Sidebar)
     return _buildBlock(
         child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +95,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
             Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
         builder: (_, data) {
           if (data.hasData) {
-            // Check for home page resize
             if (isInHomePage()) {
               Future.delayed(Duration(milliseconds: 300), () {
                 _updateWindowSize();
@@ -108,11 +106,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           }
         },
       ),
-      // NEW: Small version label instead of the update prompt
       Align(
         alignment: Alignment.center,
         child: FutureBuilder<String>(
-          // Fetch version safely (async or sync depending on bind implementation)
           future: Future.value(bind.mainGetVersion()), 
           builder: (context, snapshot) {
             if (snapshot.hasData) {
@@ -131,7 +127,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       buildPluginEntry(),
     ];
     
-    // Always add Online Status at the bottom for this layout
     children.addAll([
       Divider(),
       OnlineStatusWidget(
@@ -149,7 +144,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return ChangeNotifierProvider.value(
       value: gFFI.serverModel,
       child: Container(
-        width: 280.0, // Fixed width for sidebar mode
+        width: 280.0,
         color: Theme.of(context).colorScheme.background,
         child: Stack(
           children: [
@@ -448,16 +443,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildHelpCards(String updateUrl) {
-    // SUPPRESSED: The block that previously showed the Update card has been removed.
-    
-    // Check for System Errors
     if (systemError.isNotEmpty) {
       return buildInstallCard("", systemError, "", () {});
     }
 
-/*
-    // Windows Installation/Upgrade Prompts
     if (isWindows && !bind.isDisableInstallation()) {
+      // Modified: Removed the 'else if' block to prevent "Lower version" error when running portable.
+      // Only the "Install" prompt remains.
       if (!bind.mainIsInstalled()) {
         return buildInstallCard(
             "", bind.isOutgoingOnly() ? "" : "install_tip", "Install",
@@ -465,16 +457,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           await rustDeskWinManager.closeAllSubWindows();
           bind.mainGotoInstall();
         });
-      } else if (bind.mainIsInstalledLowerVersion()) {
-        return buildInstallCard(
-            "Status", "Your installation is lower version.", "Click to upgrade",
-            () async {
-          await rustDeskWinManager.closeAllSubWindows();
-          bind.mainUpdateMe();
-        });
       }
     } 
-    // MacOS Permission Cards
     else if (isMacOS) {
       final isOutgoingOnly = bind.isOutgoingOnly();
       if (!(isOutgoingOnly || bind.mainIsCanScreenRecording(prompt: false))) {
@@ -504,7 +488,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         });
       }
     } 
-    // Linux Permission Cards
     else if (isLinux) {
       if (bind.isOutgoingOnly()) {
         return Container();
@@ -545,14 +528,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           children: LinuxCards,
         );
       }
-    } */
+    }
     if (bind.isIncomingOnly()) {
       return Align(
         alignment: Alignment.centerRight,
         child: OutlinedButton(
           onPressed: () {
-            SystemNavigator.pop(); // Close the application
-            // https://github.com/flutter/flutter/issues/66631
+            SystemNavigator.pop(); 
             if (isWindows) {
               exit(0);
             }
@@ -594,7 +576,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       children: [
         Container(
           margin: EdgeInsets.fromLTRB(
-              0, marginTop, 0, marginTop), // Applied consistent margin
+              0, marginTop, 0, marginTop),
           child: Container(
               decoration: BoxDecoration(
                   gradient: LinearGradient(

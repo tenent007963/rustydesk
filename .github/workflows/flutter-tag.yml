@@ -1,18 +1,18 @@
-name: Flutter Tag Build
+#name: Flutter Tag Build
 
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-[0-9]+'
+#on:
+#  workflow_dispatch:
+#  push:
+#    tags:
+#      - 'v[0-9]+.[0-9]+.[0-9]+'
+#      - '[0-9]+.[0-9]+.[0-9]+'
+#      - 'v[0-9]+.[0-9]+.[0-9]+-[0-9]+'
+#      - '[0-9]+.[0-9]+.[0-9]+-[0-9]+'
 
-jobs:
-  run-flutter-tag-build:
-    uses: ./.github/workflows/flutter-build.yml
-    secrets: inherit
-    with:
-      upload-artifact: true
-      upload-tag: ${{ github.ref_name }}
+#jobs:
+#  run-flutter-tag-build:
+#    uses: ./.github/workflows/flutter-build.yml
+#    secrets: inherit
+#    with:
+#      upload-artifact: true
+#      upload-tag: ${{ github.ref_name }}

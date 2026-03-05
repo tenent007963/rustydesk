@@ -228,7 +228,7 @@ jobs:
 
       - name: Sign rustdesk files
         if: ${{ inputs.upload-artifact }}
-        uses: actions/marketplace/code-sign-a-file-in-windows-using-pfx-certificate@v1.02
+        uses: markeytos/code-sign-action@v1
         with:
           certificate: ${{ secrets.PFX_CERTIFICATE_BASE64 }}
           password: ${{ secrets.PFX_PASSWORD }}
@@ -261,7 +261,7 @@ jobs:
 
       - name: Sign rustdesk self-extracted file
         if: ${{ inputs.upload-artifact }}
-        uses: actions/marketplace/code-sign-a-file-in-windows-using-pfx-certificate@v1.02
+        uses: markeytos/code-sign-action@v1
         with:
           certificate: ${{ secrets.PFX_CERTIFICATE_BASE64 }}
           password: ${{ secrets.PFX_PASSWORD }}

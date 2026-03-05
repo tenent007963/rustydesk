@@ -218,22 +218,12 @@ jobs:
           name: rustdesk-unsigned-windows-${{ matrix.job.arch }}
           path: rustdesk
 
-      - name: Create PFX file
-        if: ${{ inputs.upload-artifact }}
-        shell: powershell
-        run: |
-          $pfx_base64 = "${{ secrets.PFX_CERTIFICATE_BASE64 }}"
-          $pfx_bytes = [System.Convert]::FromBase64String($pfx_base64)
-          [System.IO.File]::WriteAllBytes("certificate.pfx", $pfx_bytes)
-
       - name: Sign rustdesk files
         if: ${{ inputs.upload-artifact }}
-        uses: markeytos/code-sign-action@v1
+        uses: dlemstra/code-sign-action@v1
         with:
-          certificatesha1: '${{ secrets.PFX_CERTHASH }}'
           certificate: '${{ secrets.PFX_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.PFX_PASSWORD }}'
-          timestampUrl: 'http://timestamp.digicert.com'
           folder: './rustdesk/'
           recursive: true          
 
@@ -264,14 +254,12 @@ jobs:
 
       - name: Sign rustdesk self-extracted file
         if: ${{ inputs.upload-artifact }}
-        uses: markeytos/code-sign-action@v1
+        uses: dlemstra/code-sign-action@v1
         with:
-          certificatesha1: '${{ secrets.PFX_CERTHASH }}'
           certificate: '${{ secrets.PFX_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.PFX_PASSWORD }}'
-          timestampUrl: 'http://timestamp.digicert.com'
           folder: './rustdesk/'
-          recursive: true          
+          recursive: true    
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1

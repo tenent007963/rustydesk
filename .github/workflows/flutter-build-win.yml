@@ -218,6 +218,22 @@ jobs:
           name: rustdesk-unsigned-windows-${{ matrix.job.arch }}
           path: rustdesk
 
+      - name: Create PFX file
+        if: ${{ inputs.upload-artifact }}
+        shell: powershell
+        run: |
+          $pfx_base64 = "${{ secrets.PFX_CERTIFICATE_BASE64 }}"
+          $pfx_bytes = [System.Convert]::FromBase64String($pfx_base64)
+          [System.IO.File]::WriteAllBytes("certificate.pfx", $pfx_bytes)
+
+      - name: Sign rustdesk files
+        if: ${{ inputs.upload-artifact }}
+        uses: actions/marketplace/code-sign-a-file-in-windows-using-pfx-certificate@v1.02
+        with:
+          certificate: ${{ secrets.PFX_CERTIFICATE_BASE64 }}
+          password: ${{ secrets.PFX_PASSWORD }}
+          folder: './rustdesk/'          
+
       - name: Build self-extracted executable
         shell: bash
         if: ${{ inputs.upload-artifact }}
@@ -242,6 +258,14 @@ jobs:
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
           mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.msi
           sha256sum ../../SignOutput/rustdesk-*.msi
+
+      - name: Sign rustdesk self-extracted file
+        if: ${{ inputs.upload-artifact }}
+        uses: actions/marketplace/code-sign-a-file-in-windows-using-pfx-certificate@v1.02
+        with:
+          certificate: ${{ secrets.PFX_CERTIFICATE_BASE64 }}
+          password: ${{ secrets.PFX_PASSWORD }}
+          folder: './SignOutput'   
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1

@@ -230,9 +230,12 @@ jobs:
         if: ${{ inputs.upload-artifact }}
         uses: markeytos/code-sign-action@v1
         with:
-          certificate: ${{ secrets.PFX_CERTIFICATE_BASE64 }}
-          password: ${{ secrets.PFX_PASSWORD }}
-          folder: './rustdesk/'          
+          certificatesha1: '${{ secrets.PFX_CERTHASH }}'
+          certificate: '${{ secrets.PFX_CERTIFICATE_BASE64 }}'
+          password: '${{ secrets.PFX_PASSWORD }}'
+          timestampUrl: 'http://timestamp.digicert.com'
+          folder: './rustdesk/'
+          recursive: true          
 
       - name: Build self-extracted executable
         shell: bash
@@ -263,9 +266,12 @@ jobs:
         if: ${{ inputs.upload-artifact }}
         uses: markeytos/code-sign-action@v1
         with:
-          certificate: ${{ secrets.PFX_CERTIFICATE_BASE64 }}
-          password: ${{ secrets.PFX_PASSWORD }}
-          folder: './SignOutput'   
+          certificatesha1: '${{ secrets.PFX_CERTHASH }}'
+          certificate: '${{ secrets.PFX_CERTIFICATE_BASE64 }}'
+          password: '${{ secrets.PFX_PASSWORD }}'
+          timestampUrl: 'http://timestamp.digicert.com'
+          folder: './rustdesk/'
+          recursive: true          
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1

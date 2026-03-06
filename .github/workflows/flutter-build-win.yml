@@ -258,7 +258,7 @@ jobs:
         with:
           certificate: '${{ secrets.PFX_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.PFX_PASSWORD }}'
-          folder: './rustdesk/'
+          folder: './SignOutput/'
           recursive: true    
 
       - name: Publish Release

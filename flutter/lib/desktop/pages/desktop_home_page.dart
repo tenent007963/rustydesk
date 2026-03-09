@@ -55,10 +55,15 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   final RxBool _block = false.obs;
 
   final GlobalKey _childKey = GlobalKey();
+  Size? _lastKnownSize;
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // Schedule window size update after the current frame builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateWindowSize();
+    });
     return _buildBlock(
         child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -839,11 +844,22 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     }
     if (renderObject is RenderBox) {
       final size = renderObject.size;
-      if (size != imcomingOnlyHomeSize) {
-        imcomingOnlyHomeSize = size;
-        windowManager.setSize(getIncomingOnlyHomeSize());
+      // Only update if size has changed
+      if (_lastKnownSize != size) {
+        _lastKnownSize = size;
+        if (size != imcomingOnlyHomeSize) {
+          imcomingOnlyHomeSize = size;
+          windowManager.setSize(getIncomingOnlyHomeSize());
+        }
       }
     }
+  }
+
+  void _scheduleWindowSizeUpdate() {
+    // Schedule the update for the next frame to ensure layout is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateWindowSize();
+    });
   }
 
   @override
